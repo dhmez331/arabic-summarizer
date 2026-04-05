@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import Request
 
 from text_processing import process_text
-from model import summarize_text
+from model import summarize_text, get_metadata
 
 app = FastAPI(title="Smart Arabic Summarizer API")
 
@@ -30,6 +30,9 @@ class TextRequest(BaseModel):
     text: str
     model_choice: str = "qwen" 
 
+class MetadataRequest(BaseModel):
+    text: str
+
 @app.post("/summarize")
 def summarize_arabic_text(request: TextRequest):
     try:
@@ -48,6 +51,24 @@ def summarize_arabic_text(request: TextRequest):
             "cleaned_word_count": cleaned_word_count,
             "summary": summary,
             "model_used": model_choice
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/metadata")
+def extract_arabic_metadata(request: MetadataRequest):
+    try:
+        input_text = request.text
+        
+        cleaned_text, original_word_count, cleaned_word_count = process_text(input_text)
+        
+        metadata = get_metadata(cleaned_text, cleaned_word_count)
+        
+        return {
+            "original_word_count": original_word_count,
+            "cleaned_word_count": cleaned_word_count,
+            "method_used": "direct" if cleaned_word_count < 1500 else "chunking",
+            "metadata": metadata
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

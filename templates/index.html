@@ -206,6 +206,67 @@
             margin-top: 0;
             color: var(--text-light);
         }
+
+        .metadata-section {
+            margin-top: 25px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .metadata-section h4 {
+            margin-top: 0;
+            color: var(--text-light);
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .tag {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .tag-topic {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .tag-tag {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .tag-keyword {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .method-direct {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .method-chunking {
+            background: #fce7f3;
+            color: #9d174d;
+        }
     </style>
 </head>
 <body>
@@ -268,10 +329,67 @@
             <p id="cleanedOutput" style="line-height: 1.6; color: #475569; font-size: 0.95rem;"></p>
         </div>
 
+        <div class="metadata-section">
+            <h4>
+                🏷️ البيانات الوصفية (Metadata):
+                <span id="methodBadge" class="method-badge"></span>
+            </h4>
+
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 5px;">الموضوعات:</p>
+            <div id="topicsOutput" class="tags-container"></div>
+
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 15px; margin-bottom: 5px;">الوسوم:</p>
+            <div id="tagsOutput" class="tags-container"></div>
+
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 15px; margin-bottom: 5px;">الكلمات المفتاحية:</p>
+            <div id="keywordsOutput" class="tags-container"></div>
+        </div>
+
     </div>
 </div>
 
 <script>
+    async function extractMetadata() {
+        const text = document.getElementById('inputText').value;
+
+        if (!text.trim()) return;
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/metadata', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // عرض الـ method badge
+                const badge = document.getElementById('methodBadge');
+                badge.innerText = data.method_used === 'direct' ? 'LLM مباشر' : 'Chunking';
+                badge.className = 'method-badge ' + (data.method_used === 'direct' ? 'method-direct' : 'method-chunking');
+
+                // دالة مساعدة تحول القائمة لـ tags
+                function renderTags(items, containerId, cssClass) {
+                    const container = document.getElementById(containerId);
+                    container.innerHTML = '';
+                    items.forEach(item => {
+                        const span = document.createElement('span');
+                        span.className = 'tag ' + cssClass;
+                        span.innerText = item;
+                        container.appendChild(span);
+                    });
+                }
+
+                renderTags(data.metadata.topics,   'topicsOutput',   'tag-topic');
+                renderTags(data.metadata.tags,      'tagsOutput',     'tag-tag');
+                renderTags(data.metadata.keywords,  'keywordsOutput', 'tag-keyword');
+            }
+        } catch (error) {
+            console.error("خطأ في استخراج الـ metadata:", error);
+        }
+    }
+
     async function summarizeText() {
         const text = document.getElementById('inputText').value;
         const modelChoice = document.getElementById('modelSelect').value; 
@@ -281,6 +399,7 @@
         
         document.getElementById('loading').style.display = 'block';
         document.getElementById('resultBox').style.display = 'none';
+        extractMetadata();
 
         try {
             const response = await fetch('http://127.0.0.1:8000/summarize', {
