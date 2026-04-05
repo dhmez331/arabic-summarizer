@@ -295,6 +295,10 @@
         <textarea id="inputText" placeholder="اكتب أو انسخ مقالك هنا..."></textarea>
     </div>
 
+    <div id="wordCounter" style="text-align: left; color: var(--text-light); font-size: 0.85rem; margin-top: 6px;">
+        0 كلمة
+    </div>
+
     <button onclick="summarizeText()">معالجة وتلخيص النص</button>
 
     <div id="loading" style="display:none;">
@@ -349,6 +353,20 @@
 </div>
 
 <script>
+    document.getElementById('inputText').addEventListener('input', function() {
+        const text = this.value.trim();
+        const wordCount = text === '' ? 0 : text.split(/\s+/).length;
+        const counter = document.getElementById('wordCounter');
+        
+        counter.innerText = wordCount + ' كلمة';
+        
+        if (wordCount >= 1500) {
+            counter.style.color = '#f5811f';
+        } else {
+            counter.style.color = 'var(--text-light)';
+        }
+    });
+
     async function extractMetadata() {
         const text = document.getElementById('inputText').value;
 

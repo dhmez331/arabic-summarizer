@@ -42,7 +42,8 @@ def summarize_arabic_text(request: TextRequest):
         cleaned_text, original_word_count, cleaned_word_count = process_text(input_text)
         
         # Pass the selected model to the summarization function
-        summary = summarize_text(cleaned_text, model_choice)
+        summary_tokens = 400 if cleaned_word_count >= 1500 else 200
+        summary = summarize_text(cleaned_text, model_choice, max_tokens=summary_tokens)
         
         return {
             "original_text": input_text,
