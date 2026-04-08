@@ -50,7 +50,7 @@ def summarize_arabic_text(request: TextRequest):
             "cleaned_text": cleaned_text,
             "original_word_count": original_word_count,
             "cleaned_word_count": cleaned_word_count,
-            "summary": summary,
+            "summary": "summary",
             "model_used": model_choice
         }
     except Exception as e:
