@@ -9,6 +9,8 @@ from fastapi import Request
 from text_processing import process_text
 from model import summarize_text, get_metadata
 
+from rag_extractor import run_evaluation
+
 app = FastAPI(title="Smart Arabic Summarizer API")
 
 templates = Jinja2Templates(directory="templates")
@@ -32,6 +34,10 @@ class TextRequest(BaseModel):
 
 class MetadataRequest(BaseModel):
     text: str
+
+class DateRequest(BaseModel):
+    text: str
+    model_key: str = "minilm"
 
 @app.post("/summarize")
 def summarize_arabic_text(request: TextRequest):
@@ -71,5 +77,14 @@ def extract_arabic_metadata(request: MetadataRequest):
             "method_used": "direct" if cleaned_word_count < 1500 else "chunking",
             "metadata": metadata
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    
+@app.post("/extract-dates")
+def extract_arabic_dates(request: DateRequest):
+    try:
+        result = run_evaluation(request.text, request.model_key)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

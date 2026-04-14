@@ -267,6 +267,16 @@
             background: #fce7f3;
             color: #9d174d;
         }
+
+        .tag-date-rag {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .tag-date-regex {
+            background: #fce7f3;
+            color: #9d174d;
+        }
     </style>
 </head>
 <body>
@@ -287,6 +297,15 @@
         <select id="modelSelect">
             <option value="qwen">نموذج Qwen 2.5 </option>
             <option value="llama">نموذج LLaMA 3.1 - من Meta</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label for="embeddingSelect">اختر نموذج التضمين (Embedding Model):</label>
+        <select id="embeddingSelect">
+            <option value="minilm">MiniLM — الأخف والأسرع</option>
+            <option value="mpnet">MPNet — توازن جيد</option>
+            <option value="e5-large">E5-Large — الأدق علمياً</option>
         </select>
     </div>
 
@@ -349,6 +368,23 @@
             <div id="keywordsOutput" class="tags-container"></div>
         </div>
 
+        <div class="metadata-section" id="datesSection">
+            <h4>📅 التواريخ الهجرية المستخرجة:</h4>
+
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 5px;">RAG استخرج:</p>
+            <div id="ragDatesOutput" class="tags-container"></div>
+
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 15px; margin-bottom: 5px;">Regex وجدت (مرجع المقارنة):</p>
+            <div id="regexDatesOutput" class="tags-container"></div>
+
+            <p id="ragAccuracy" style="margin-top: 15px; font-weight: 700; color: var(--text-main);"></p>
+
+            <div style="margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 10px;">
+                <p style="color: var(--text-light); font-size: 0.9rem; margin: 0 0 8px 0;">عرض Qwen النهائي:</p>
+                <p id="ragDisplayOutput" style="margin: 0; line-height: 1.6;"></p>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -408,6 +444,52 @@
         }
     }
 
+    async function extractDates() {
+        const text = document.getElementById('inputText').value;
+        const modelKey = document.getElementById('embeddingSelect').value;
+
+        if (!text.trim()) return;
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/extract-dates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text, model_key: modelKey })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                function renderDates(items, containerId, cssClass) {
+                    const container = document.getElementById(containerId);
+                    container.innerHTML = '';
+                    if (items.length === 0) {
+                        container.innerHTML = '<span style="color: var(--text-light);">لم يُعثر على تواريخ</span>';
+                        return;
+                    }
+                    items.forEach(item => {
+                        const span = document.createElement('span');
+                        span.className = 'tag ' + cssClass;
+                        span.innerText = item;
+                        container.appendChild(span);
+                    });
+                }
+
+                renderDates(data.rag_dates,   'ragDatesOutput',   'tag-date-rag');
+                renderDates(data.regex_dates, 'regexDatesOutput', 'tag-date-regex');
+
+                const total    = data.regex_dates.length;
+                const matched  = data.rag_dates.filter(d => data.regex_dates.includes(d)).length;
+                const accuracy = total > 0 ? Math.round((matched / total) * 100) : 0;
+
+                document.getElementById('ragAccuracy').innerText = `دقة RAG: ${accuracy}% (${matched} من ${total})`;
+                document.getElementById('ragDisplayOutput').innerText = data.rag_display;
+            }
+        } catch (error) {
+            console.error("خطأ في استخراج التواريخ:", error);
+        }
+    }
+
     async function summarizeText() {
         const text = document.getElementById('inputText').value;
         const modelChoice = document.getElementById('modelSelect').value; 
@@ -418,6 +500,7 @@
         document.getElementById('loading').style.display = 'block';
         document.getElementById('resultBox').style.display = 'none';
         extractMetadata();
+        extractDates();
 
         try {
             const response = await fetch('http://127.0.0.1:8000/summarize', {
