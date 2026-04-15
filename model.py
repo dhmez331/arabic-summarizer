@@ -3,8 +3,6 @@ import os
 import json 
 from dotenv import load_dotenv
 
-
-
 load_dotenv()
 
 API_URL = "https://router.huggingface.co/v1/chat/completions"
@@ -14,16 +12,14 @@ HEADERS = {
 }
 
 def summarize_text(text, model_choice="qwen", max_tokens=200):
-    # Select model basd  on user choice
     if model_choice == "llama":
-        # llamma model from meta
         selected_model = "meta-llama/Llama-3.1-8B-Instruct"
     else:
-        # Qwen model
         selected_model = "Qwen/Qwen2.5-72B-Instruct"
 
     payload = {
         "model": selected_model,
+        "provider": "novita",
         "messages": [
             {"role": "system", "content": "أنت مساعد ذكي ومحترف. قم بتلخيص النص العربي التالي بإيجاز شديد وبدقة."},
             {"role": "user", "content": text}
@@ -39,9 +35,11 @@ def summarize_text(text, model_choice="qwen", max_tokens=200):
     else:
         return f"Error: {response.status_code} - {response.text}"
 
+
 def extract_metadata(text):
     payload = {
         "model": "Qwen/Qwen2.5-72B-Instruct",
+        "provider": "novita",
         "messages": [
             {
                 "role": "system",
@@ -73,29 +71,23 @@ def extract_metadata(text):
 
 
 def extract_metadata_chunked(text, chunk_size=500):
-    # 1. Split the text into a list of words
     words = text.split()
-    
-    # 2. Divide the words into chunks
     chunks = []
     for i in range(0, len(words), chunk_size):
         chunk = " ".join(words[i:i + chunk_size])
         chunks.append(chunk)
     
-    # 3. Extract metadata from each chunk
     all_topics = []
     all_tags = []
     all_keywords = []
     
     for chunk in chunks:
         result = extract_metadata(chunk)
-        
         if "error" not in result:
             all_topics.extend(result.get("topics", []))
             all_tags.extend(result.get("tags", []))
             all_keywords.extend(result.get("keywords", []))
     
-    # 4. Merge results and remove duplicates
     return {
         "topics": list(set(all_topics)),
         "tags": list(set(all_tags)),
@@ -103,7 +95,7 @@ def extract_metadata_chunked(text, chunk_size=500):
         "language": "multi-part"
     }
 
-# Decied which to use (LLM or Chunking+LLM)
+
 def get_metadata(text, word_count):
     if word_count < 1500:
         return extract_metadata(text)
