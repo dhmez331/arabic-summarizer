@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = "https://router.huggingface.co/v1/chat/completions"
+API_URL = "https://api-inference.huggingface.co/v1/chat/completions"
 HEADERS = {
     "Authorization": f"Bearer {os.getenv('HF_API_KEY')}",
     "Content-Type": "application/json"
