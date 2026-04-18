@@ -84,8 +84,7 @@ def extract_arabic_metadata(request: MetadataRequest):
 @app.post("/extract-dates")
 def extract_arabic_dates(request: DateRequest):
     try:
-        cleaned_text, _, _ = process_text(request.text)
-        result = run_evaluation(cleaned_text, request.model_key)
+        result = run_evaluation(request.text, request.model_key)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

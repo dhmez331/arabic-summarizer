@@ -39,13 +39,16 @@ def normalize_digits(text):
         text = text.replace(chr(0x0660 + i), str(i))
     return text
 
+def clean_for_rag(text):
+    text = re.sub(r'[\u064B-\u0652]', '', text)
+    return text
 
 # ═══════════════════════════════════════════
 # مسار RAG — Hybrid Search
 # ═══════════════════════════════════════════
 
 def build_rag(text, model_key="minilm"):
-    normalized_text = normalize_digits(text)
+    normalized_text = normalize_digits(clean_for_rag(text))
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)
     chunks = splitter.split_text(normalized_text)

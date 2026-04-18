@@ -10,7 +10,7 @@ def clean_arabic_text(text):
     
     # 3. Remove punctuation and symbols
     text = re.sub(r'[^\w\s\u0600-\u06FF]', ' ', text)
-    # text = re.sub(r'[0-9٠-٩]', '', text)
+    text = re.sub(r'[0-9٠-٩]', '', text)
     
     # 4. Remove redundant spaces
     text = re.sub(r'\s+', ' ', text).strip()
