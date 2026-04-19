@@ -58,7 +58,7 @@ def build_rag(text, model_key="minilm"):
     faiss_retriever = faiss_store.as_retriever(search_kwargs={"k": 3})
 
     bm25_retriever = BM25Retriever.from_texts(chunks)
-    bm25_retriever.k = 3
+    bm25_retriever.k = 5
 
     hybrid_retriever = EnsembleRetriever(
         retrievers=[faiss_retriever, bm25_retriever],
