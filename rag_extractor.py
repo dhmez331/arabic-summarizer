@@ -55,7 +55,7 @@ def build_rag(text, model_key="minilm"):
 
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODELS[model_key])
     faiss_store = FAISS.from_texts(chunks, embeddings)
-    faiss_retriever = faiss_store.as_retriever(search_kwargs={"k": 3})
+    faiss_retriever = faiss_store.as_retriever(search_kwargs={"k": 6})
 
     bm25_retriever = BM25Retriever.from_texts(chunks)
     bm25_retriever.k = 6
