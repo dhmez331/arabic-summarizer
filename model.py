@@ -19,7 +19,7 @@ def summarize_text(text, model_choice="qwen", max_tokens=200):
 
     payload = {
         "model": selected_model,
-        "provider": "nebius",
+        "provider": "novita",
         "messages": [
             {"role": "system", "content": "أنت مساعد ذكي ومحترف. قم بتلخيص النص العربي التالي بإيجاز شديد وبدقة."},
             {"role": "user", "content": text}

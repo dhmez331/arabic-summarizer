@@ -46,7 +46,7 @@ def clean_for_rag(text):
 def calculate_k(text, chunk_size=200):
     num_chunks = max(1, len(text.split()) // chunk_size)
     k = int(num_chunks * 0.7)
-    return max(3, min(k, 10))
+    return max(6, min(k, 10))
 
 # ═══════════════════════════════════════════
 # مسار RAG — Hybrid Search
